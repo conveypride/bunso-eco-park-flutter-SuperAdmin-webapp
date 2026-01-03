@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "bunso-eco-park-admin"
+  },
+  "targets": {
+    "bunso-eco-park-admin": {
+      "hosting": {
+        "admin": [
+          "bunso-admin-panel"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

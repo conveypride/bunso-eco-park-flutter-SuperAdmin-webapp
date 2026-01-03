@@ -1,10 +1,7 @@
 import 'package:bunso_ecopark_admin/middlewares/auth_guard.dart';
 import 'package:bunso_ecopark_admin/views/layout/main_layout.dart';
 import 'package:bunso_ecopark_admin/views/login/login_view.dart';
-import 'package:bunso_ecopark_admin/views/users/users_view.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// Import your views here later (LoginView, DashboardView, etc.)
 
 class AppPages {
   static final routes = [

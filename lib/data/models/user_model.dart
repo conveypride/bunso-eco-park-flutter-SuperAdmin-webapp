@@ -26,7 +26,7 @@ class UserModel {
 
   // Helpers to check permissions easily
   bool get isSuperAdmin => role == 'super_admin';
-  bool get isAdmin => role == 'admin' || role == 'super_admin'; // Admins can see basic stuff
+  bool get isAdmin => role == 'admin'; // Admins can see basic stuff
 
   // === NEW: COPYWITH METHOD ===
   // This allows us to update the local user state without fetching from DB again

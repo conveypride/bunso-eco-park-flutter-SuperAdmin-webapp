@@ -15,7 +15,7 @@ class BuildLogoHeader extends StatelessWidget {
             shape: BoxShape.circle,
             color: Colors.white,
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+              BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 15, offset: const Offset(0, 5))
             ],
             border: Border.all(color: Colors.green.shade100, width: 1)
           ),

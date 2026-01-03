@@ -1,3 +1,4 @@
+import 'package:bunso_ecopark_admin/controllers/auth_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
@@ -12,6 +13,13 @@ class ActivitiesController extends GetxController {
     super.onInit();
     fetchActivities();
   }
+
+bool isAdmin(){
+     final auth = Get.find<AuthController>();
+    bool isadmin = auth.currentUser.value?.isAdmin ?? false;
+
+    return isadmin;
+} 
 
   void fetchActivities() async {
     try {

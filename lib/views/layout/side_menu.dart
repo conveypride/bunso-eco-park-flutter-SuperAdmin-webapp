@@ -19,7 +19,7 @@ class SideMenu extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(2, 0),
           ),
@@ -52,7 +52,7 @@ class SideMenu extends StatelessWidget {
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha:0.1),
                     ),
                   ),
                 ),
@@ -64,7 +64,7 @@ class SideMenu extends StatelessWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFFFC107).withOpacity(0.2),
+                      color: const Color(0xFFFFC107).withValues(alpha:0.2),
                     ),
                   ),
                 ),
@@ -123,7 +123,7 @@ class SideMenu extends StatelessWidget {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF2D5016).withOpacity(0.3),
+                                color: const Color(0xFF2D5016).withValues(alpha:0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -150,7 +150,7 @@ class SideMenu extends StatelessWidget {
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? const Color(0xFFFFC107).withOpacity(0.3)
+                                      ? const Color(0xFFFFC107).withValues(alpha:0.3)
                                       : Colors.grey[100],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -215,7 +215,7 @@ class SideMenu extends StatelessWidget {
               color: const Color(0xFFF5F7F0),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFF2D5016).withOpacity(0.1),
+                color: const Color(0xFF2D5016).withValues(alpha:0.1),
               ),
             ),
             child: Row(
@@ -246,7 +246,7 @@ class SideMenu extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "EcoPark Admin",
+                      "Administrator Mode",
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 10,
@@ -305,7 +305,7 @@ class SideMenu extends StatelessWidget {
 //                   return Container(
 //                     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
 //                     decoration: BoxDecoration(
-//                       color: isSelected ? const Color(0xFF2D5016).withOpacity(0.1) : null,
+//                       color: isSelected ? const Color(0xFF2D5016).withValues(alpha:0.1) : null,
 //                       borderRadius: BorderRadius.circular(8),
 //                     ),
 //                     child: ListTile(

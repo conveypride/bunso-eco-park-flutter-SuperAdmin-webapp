@@ -1,8 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:csv/csv.dart'; // Import CSV
+import 'dart:convert'; // For utf8 encoding
+import 'package:universal_html/html.dart' as html; // For Web Download
 
-enum DateFilter { today, thisWeek, lastWeek, thisMonth, lastMonth, custom, all }
+enum DateFilter { today, last7Days, thisWeek, lastWeek, thisMonth, lastMonth, custom, all }
 
 class TransactionsController extends GetxController {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -15,12 +18,16 @@ class TransactionsController extends GetxController {
 
   // Pagination
   DocumentSnapshot? lastDocument;
-  final int pageSize = 20; // Load 20 at a time
+  final int pageSize = 20;
 
   // Filters
-  var selectedFilter = DateFilter.all.obs;
+  // DEFAULT SET TO LAST 7 DAYS
+  var selectedFilter = DateFilter.last7Days.obs; 
   var customStartDate = DateTime.now().obs;
   var customEndDate = DateTime.now().obs;
+
+// === NEW: STATUS FILTER ===
+  var statusFilter = "All".obs; // Options: All, Paid, Refunded, Canceled
 
   // Search
   var searchQuery = "".obs;
@@ -31,8 +38,9 @@ class TransactionsController extends GetxController {
     fetchTransactions();
   }
 
-  // === FETCH TRANSACTIONS WITH PAGINATION ===
+  // === FETCH TRANSACTIONS (Handles Initial Load & Pagination) ===
   void fetchTransactions({bool loadMore = false}) async {
+    // Prevent duplicate calls
     if (loadMore && !hasMore.value) return;
     if (loadMore && isLoadingMore.value) return;
 
@@ -48,7 +56,11 @@ class TransactionsController extends GetxController {
 
       Query query = _db.collection('transactions');
 
-      // Apply date filter
+// 1. Apply Status Filter (NEW)
+      if (statusFilter.value != "All") {
+        query = query.where('status', isEqualTo: statusFilter.value);
+      }
+      // Apply date filter (Logic below)
       final dateRange = _getDateRange();
       if (dateRange != null) {
         query = query
@@ -56,10 +68,10 @@ class TransactionsController extends GetxController {
             .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(dateRange['end']!));
       }
 
-      // Order by timestamp
+      // Order by timestamp (Newest first)
       query = query.orderBy('timestamp', descending: true);
 
-      // Pagination
+      // Apply Pagination
       if (loadMore && lastDocument != null) {
         query = query.startAfterDocument(lastDocument!);
       }
@@ -70,18 +82,19 @@ class TransactionsController extends GetxController {
 
       if (snapshot.docs.isEmpty) {
         hasMore.value = false;
+        if (!loadMore) transactions.clear();
         return;
       }
 
-      // Check if there are more documents
+      // Check if we reached the end
       if (snapshot.docs.length < pageSize) {
         hasMore.value = false;
       }
 
-      // Update last document for next pagination
+      // Update cursor
       lastDocument = snapshot.docs.last;
 
-      // Add to list
+      // Update List
       if (loadMore) {
         transactions.addAll(snapshot.docs);
       } else {
@@ -101,33 +114,105 @@ class TransactionsController extends GetxController {
     }
   }
 
+
+
+// === EXPORT TO EXCEL (CSV) ===
+  void exportToExcel() {
+    if (transactions.isEmpty) {
+      Get.snackbar("Export Failed", "No data to export", backgroundColor: Colors.orange, colorText: Colors.white);
+      return;
+    }
+
+    List<List<dynamic>> rows = [];
+
+    // 1. Add Header Row
+    rows.add([
+      "Date",
+      "Time",
+      "Receipt ID",
+      "Customer Name",
+      "Phone",
+      "Items Count",
+      "Total Amount (GHS)",
+      "Status",
+      "Cashier"
+    ]);
+
+    // 2. Add Data Rows
+    for (var doc in transactions) {
+      final data = doc.data() as Map<String, dynamic>;
+      final Timestamp? ts = data['timestamp'];
+      final DateTime date = ts != null ? ts.toDate() : DateTime.now();
+
+      rows.add([
+        "${date.year}-${date.month}-${date.day}", // Date
+        "${date.hour}:${date.minute}",             // Time
+        data['id'] ?? '-',
+        data['customerName'] ?? 'Guest',
+        data['customerPhone'] ?? '-',
+        data['totalItems'] ?? 0,
+        data['totalAmount'] ?? 0.0,
+        data['status'] ?? 'Paid',
+        data['cashierName'] ?? 'Unknown'
+      ]);
+    }
+
+    // 3. Convert to CSV String
+    String csv = const ListToCsvConverter().convert(rows);
+
+    // 4. Trigger Download (Web specific)
+    final bytes = utf8.encode(csv);
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "transactions_export_${DateTime.now().millisecondsSinceEpoch}.csv")
+      ..click();
+    
+    html.Url.revokeObjectUrl(url);
+
+    Get.snackbar("Success", "Export downloaded successfully!", backgroundColor: Colors.green, colorText: Colors.white);
+  }
+
+  // === LOAD MORE (Connect this to your ScrollController) ===
+  void loadMore() {
+    // Disable pagination if searching (results are usually small)
+    if (searchQuery.value.isNotEmpty) return; 
+    
+    fetchTransactions(loadMore: true);
+  }
+
+  // === REFRESH (Connect this to RefreshIndicator) ===
+  void refresh() {
+    searchQuery.value = "";
+    fetchTransactions();
+  }
+
   // === SEARCH TRANSACTIONS ===
   void searchTransactions(String query) async {
     searchQuery.value = query.trim();
 
     if (searchQuery.value.isEmpty) {
-      fetchTransactions(); // Reset if empty
+      fetchTransactions();
       return;
     }
 
     try {
       isLoading.value = true;
       transactions.clear();
-      hasMore.value = false; // Disable pagination for search
+      hasMore.value = false; 
 
-      // Try searching by ID first
+      // 1. Search by ID
       var snapshot = await _db
           .collection('transactions')
           .where('id', isEqualTo: searchQuery.value)
           .get();
 
-      // If no ID match, try Phone
+      // 2. If no ID, Search by Phone
       if (snapshot.docs.isEmpty) {
         String phone = searchQuery.value;
-        // Handle phone formats (add 233 if missing)
-        if (phone.startsWith('0')) {
-          phone = '233${phone.substring(1)}';
-        }
+        // if (phone.startsWith('0')) {
+        //   phone = '233${phone.substring(1)}';
+        // }
 
         snapshot = await _db
             .collection('transactions')
@@ -139,49 +224,46 @@ class TransactionsController extends GetxController {
       transactions.value = snapshot.docs;
 
       if (snapshot.docs.isEmpty) {
-        Get.snackbar(
-          "No Results",
-          "No transactions found for '$query'",
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
+        Get.snackbar("No Results", "No transactions found for '$query'", backgroundColor: Colors.orange, colorText: Colors.white);
       }
     } catch (e) {
       print("Search Error: $e");
-      Get.snackbar(
-        "Search Error",
-        "Could not find record: $e",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Search Error", "$e", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
   }
 
-  // === CLEAR SEARCH ===
+  // === HELPER METHODS ===
+
   void clearSearch() {
     searchQuery.value = "";
     fetchTransactions();
   }
 
-  // === CHANGE DATE FILTER ===
   void changeFilter(DateFilter filter) {
     selectedFilter.value = filter;
-    searchQuery.value = ""; // Clear search when filtering
+    searchQuery.value = ""; 
     fetchTransactions();
   }
 
-  // === SET CUSTOM DATE RANGE ===
+// === NEW HELPER: CHANGE STATUS ===
+  void changeStatusFilter(String? status) {
+    if (status != null) {
+      statusFilter.value = status;
+      fetchTransactions(); // Reload data
+    }
+  }
+
   void setCustomDateRange(DateTime start, DateTime end) {
     customStartDate.value = start;
     customEndDate.value = end;
     selectedFilter.value = DateFilter.custom;
-    searchQuery.value = ""; // Clear search
+    searchQuery.value = "";
     fetchTransactions();
   }
 
-  // === GET DATE RANGE BASED ON FILTER ===
+  // === DATE RANGE LOGIC ===
   Map<String, DateTime>? _getDateRange() {
     final now = DateTime.now();
 
@@ -189,6 +271,13 @@ class TransactionsController extends GetxController {
       case DateFilter.today:
         return {
           'start': DateTime(now.year, now.month, now.day, 0, 0, 0),
+          'end': DateTime(now.year, now.month, now.day, 23, 59, 59),
+        };
+
+      case DateFilter.last7Days:
+        final start = now.subtract(const Duration(days: 7));
+        return {
+          'start': DateTime(start.year, start.month, start.day, 0, 0, 0),
           'end': DateTime(now.year, now.month, now.day, 23, 59, 59),
         };
 
@@ -228,41 +317,26 @@ class TransactionsController extends GetxController {
         };
 
       case DateFilter.all:
-        return null; // No filter
+        return null; 
     }
   }
 
-  // === LOAD MORE (Call this when user scrolls to bottom) ===
-  void loadMore() {
-    if (searchQuery.value.isNotEmpty) return; // Don't paginate during search
-    fetchTransactions(loadMore: true);
-  }
-
-  // === REFRESH ===
-  void refresh() {
-    searchQuery.value = "";
-    fetchTransactions();
-  }
-
-  // === GET FILTER DISPLAY NAME ===
   String getFilterDisplayName() {
     switch (selectedFilter.value) {
-      case DateFilter.today:
-        return "Today";
-      case DateFilter.thisWeek:
-        return "This Week";
-      case DateFilter.lastWeek:
-        return "Last Week";
-      case DateFilter.thisMonth:
-        return "This Month";
-      case DateFilter.lastMonth:
-        return "Last Month";
-      case DateFilter.custom:
-        return "Custom Range";
-      case DateFilter.all:
-        return "All Time";
+      case DateFilter.today: return "Today";
+      case DateFilter.last7Days: return "Last 7 Days";
+      case DateFilter.thisWeek: return "This Week";
+      case DateFilter.lastWeek: return "Last Week";
+      case DateFilter.thisMonth: return "This Month";
+      case DateFilter.lastMonth: return "Last Month";
+      case DateFilter.custom: return "Custom Range";
+      case DateFilter.all: return "All Time";
     }
   }
+
+ 
+
+
 }
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:get/get.dart';

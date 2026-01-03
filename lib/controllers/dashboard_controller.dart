@@ -164,6 +164,9 @@ class DashboardController extends GetxController {
       case 'This Month':
         start = DateTime(now.year, now.month, 1);
         break;
+       case 'Last 7 Days':
+        start = now.subtract(const Duration(days: 7));
+        break; 
       default: // "Last 7 Days"
         start = now.subtract(const Duration(days: 7));
     }

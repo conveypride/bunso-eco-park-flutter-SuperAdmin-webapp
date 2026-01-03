@@ -20,7 +20,6 @@ class MainLayout extends StatelessWidget {
     final authCtrl = Get.find<AuthController>();
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 1024;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7F0), // Soft green-tinted background
@@ -29,7 +28,7 @@ class MainLayout extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha:0.1),
         surfaceTintColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Color(0xFF2D5016)),
         leading: !isDesktop
@@ -68,35 +67,35 @@ class MainLayout extends StatelessWidget {
         }),
         actions: [
           // Search Icon (Desktop/Tablet)
-          if (isDesktop || isTablet)
-            IconButton(
-              icon: const Icon(Icons.search_rounded, color: Color(0xFF2D5016)),
-              tooltip: "Search",
-              onPressed: () {},
-            ),
+          // if (isDesktop || isTablet)
+          //   IconButton(
+          //     icon: const Icon(Icons.search_rounded, color: Color(0xFF2D5016)),
+          //     tooltip: "Search",
+          //     onPressed: () {},
+          //   ),
           
           // Notifications
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications_outlined, color: Color(0xFF2D5016)),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFC107),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
-                  ),
-                ),
-              ],
-            ),
-            tooltip: "Notifications",
-            onPressed: () {},
-          ),
+          // IconButton(
+          //   icon: Stack(
+          //     children: [
+          //       const Icon(Icons.notifications_outlined, color: Color(0xFF2D5016)),
+          //       Positioned(
+          //         right: 0,
+          //         top: 0,
+          //         child: Container(
+          //           padding: const EdgeInsets.all(4),
+          //           decoration: const BoxDecoration(
+          //             color: Color(0xFFFFC107),
+          //             shape: BoxShape.circle,
+          //           ),
+          //           constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          //   tooltip: "Notifications",
+          //   onPressed: () {},
+          // ),
           
           const SizedBox(width: 8),
           

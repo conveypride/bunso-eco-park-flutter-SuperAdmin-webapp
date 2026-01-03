@@ -17,19 +17,22 @@ class ActivitiesView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // === HEADER ===
-            Row(
+          controller.isAdmin() ? SizedBox.shrink() :
+  Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Activity & Pricing Manager", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D5016),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                Expanded(child: const Text("Activity & Pricing Manager", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2D5016),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add New Activity"),
+                    onPressed: () => _showActivityDialog(context, controller, null),
                   ),
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add New Activity"),
-                  onPressed: () => _showActivityDialog(context, controller, null),
                 ),
               ],
             ),
@@ -99,7 +102,7 @@ class ActivitiesView extends StatelessWidget {
                   activity['name'], 
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D5016))
                 ),
-                PopupMenuButton(
+               controller.isAdmin() ? SizedBox.shrink() :   PopupMenuButton(
                   itemBuilder: (context) => [
                     const PopupMenuItem(value: 'edit', child: Text("Edit Prices")),
                     const PopupMenuItem(value: 'delete', child: Text("Delete", style: TextStyle(color: Colors.red))),

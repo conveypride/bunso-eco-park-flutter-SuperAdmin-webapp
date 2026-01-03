@@ -28,10 +28,10 @@ class ProfileController extends GetxController {
         authController.currentUser.value = authController.currentUser.value!.copyWith(name: newName); // Ensure UserModel has copyWith or just refresh
         authController.currentUser.refresh(); // Trigger UI update in sidebar/header
         
-        Get.snackbar("Success", "Profile updated successfully!", backgroundColor: Colors.green.withOpacity(0.1));
+        Get.snackbar("Success", "Profile updated successfully!", backgroundColor: Colors.green.withValues(alpha:0.1));
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to update profile: $e", backgroundColor: Colors.red.withOpacity(0.1));
+      Get.snackbar("Error", "Failed to update profile: $e", backgroundColor: Colors.red.withValues(alpha:0.1));
     } finally {
       isLoading.value = false;
     }

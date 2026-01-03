@@ -37,7 +37,7 @@ class ProfileView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10)],
+                    boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.1), blurRadius: 10)],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ class ProfileView extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF2D5016).withOpacity(0.1),
+                            backgroundColor: const Color(0xFF2D5016).withValues(alpha:0.1),
                             child: Text(
                               (user?.name ?? "A")[0].toUpperCase(),
                               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D5016)),
@@ -110,7 +110,7 @@ class ProfileView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10)],
+                    boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.1), blurRadius: 10)],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
